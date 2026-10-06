@@ -1,0 +1,984 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Gesture Voice</title>
+
+<style>
+:root{
+  color-scheme:dark;
+  --bg:#05060b;
+  --fg:#f5f7ff;
+  --muted:#8991aa;
+  --cyan:#55e8ff;
+  --pink:#ff4fd8;
+  --card:#0d1020;
+  --line:#202741
+}
+
+*{box-sizing:border-box}
+
+html,body{
+  margin:0;
+  min-height:100%;
+  background:var(--bg);
+  color:var(--fg);
+  font-family:Inter,system-ui,sans-serif
+}
+
+body{overflow-x:hidden}
+
+.app{
+  min-height:100vh;
+  background:
+    radial-gradient(circle at 50% 20%,#14213b 0,transparent 35%),
+    radial-gradient(circle at 20% 80%,#25102b 0,transparent 30%),
+    var(--bg);
+  position:relative
+}
+
+.grid{
+  position:absolute;
+  inset:0;
+  background-image:
+    linear-gradient(#fff1 1px,transparent 1px),
+    linear-gradient(90deg,#fff1 1px,transparent 1px);
+  background-size:60px 60px;
+  mask-image:linear-gradient(
+    to bottom,
+    transparent,
+    #000 15%,
+    #000 80%,
+    transparent
+  );
+  opacity:.13
+}
+
+.top{
+  position:relative;
+  z-index:2;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:24px 5vw
+}
+
+.brand{
+  font-weight:800;
+  letter-spacing:.12em
+}
+
+.brand span{color:var(--cyan)}
+
+.status{
+  border:1px solid #ffffff22;
+  border-radius:999px;
+  padding:9px 14px;
+  color:#b8c0d8;
+  font-size:12px
+}
+
+.dot{
+  display:inline-block;
+  width:8px;
+  height:8px;
+  border-radius:50%;
+  background:#38ff9b;
+  box-shadow:0 0 15px #38ff9b;
+  margin-right:8px
+}
+
+.hero{
+  position:relative;
+  z-index:2;
+  max-width:1100px;
+  margin:5vh auto 0;
+  padding:0 24px;
+  text-align:center
+}
+
+.eyebrow{
+  color:var(--cyan);
+  font-size:12px;
+  letter-spacing:.25em;
+  text-transform:uppercase
+}
+
+.hero h1{
+  font-size:clamp(46px,9vw,105px);
+  line-height:.9;
+  margin:18px 0;
+  background:
+    linear-gradient(
+      90deg,
+      #fff,
+      var(--cyan),
+      #fff,
+      var(--pink)
+    );
+  background-size:300%;
+  -webkit-background-clip:text;
+  color:transparent;
+  animation:shine 7s linear infinite
+}
+
+@keyframes shine{
+  to{background-position:300%}
+}
+
+.hero p{
+  max-width:620px;
+  margin:25px auto;
+  color:var(--muted);
+  font-size:17px;
+  line-height:1.6
+}
+
+.stage{
+  margin:48px auto 0;
+  max-width:900px;
+  min-height:500px;
+  border:1px solid #ffffff18;
+  border-radius:28px;
+  background:#080b15cc;
+  backdrop-filter:blur(15px);
+  position:relative;
+  overflow:hidden;
+  box-shadow:0 0 80px #55e8ff0d
+}
+
+.camera{
+  position:absolute;
+  inset:18px 18px 105px;
+  width:calc(100% - 36px);
+  height:calc(100% - 123px);
+  object-fit:cover;
+  border-radius:20px;
+  opacity:.72;
+  transform:scaleX(-1);
+  background:#02030a
+}
+
+.scan{
+  position:absolute;
+  inset:18px 18px 105px;
+  border:1px solid #55e8ff55;
+  border-radius:20px;
+  box-shadow:inset 0 0 40px #55e8ff0a;
+  pointer-events:none
+}
+
+.scan:after{
+  content:'';
+  position:absolute;
+  left:5%;
+  right:5%;
+  height:2px;
+  top:35%;
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      var(--cyan),
+      transparent
+    );
+  box-shadow:0 0 18px var(--cyan);
+  animation:scan 2.6s ease-in-out infinite
+}
+
+@keyframes scan{
+  50%{top:70%}
+}
+
+.ring{
+  position:absolute;
+  left:50%;
+  top:45%;
+  width:170px;
+  height:170px;
+  border:1px solid #55e8ff77;
+  border-radius:50%;
+  transform:translate(-50%,-50%);
+  animation:spin 10s linear infinite;
+  pointer-events:none
+}
+
+.ring:after{
+  content:'';
+  position:absolute;
+  inset:18px;
+  border:1px dashed #ff4fd855;
+  border-radius:50%
+}
+
+@keyframes spin{
+  to{
+    transform:
+      translate(-50%,-50%)
+      rotate(360deg)
+  }
+}
+
+.phrase{
+  position:absolute;
+  bottom:43px;
+  left:20px;
+  right:20px;
+  font-size:clamp(25px,5vw,48px);
+  font-weight:800;
+  letter-spacing:.02em;
+  text-shadow:0 0 25px #55e8ff44
+}
+
+.sub{
+  position:absolute;
+  bottom:19px;
+  left:20px;
+  right:20px;
+  color:var(--muted);
+  font-size:12px;
+  letter-spacing:.18em;
+  text-transform:uppercase
+}
+
+.controls{
+  display:flex;
+  gap:10px;
+  justify-content:center;
+  flex-wrap:wrap;
+  margin:25px auto 0
+}
+
+.btn{
+  background:#ffffff0a;
+  border:1px solid #ffffff1c;
+  color:#fff;
+  padding:12px 17px;
+  border-radius:12px;
+  cursor:pointer
+}
+
+.btn:hover{
+  border-color:var(--cyan);
+  box-shadow:0 0 20px #55e8ff18
+}
+
+.cards{
+  position:relative;
+  z-index:2;
+  max-width:1000px;
+  margin:45px auto 80px;
+  padding:0 24px;
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:12px
+}
+
+.card{
+  background:#0d1020cc;
+  border:1px solid var(--line);
+  border-radius:18px;
+  padding:20px;
+  transition:.25s;
+  cursor:pointer
+}
+
+.card:hover,
+.card.active{
+  transform:translateY(-4px);
+  border-color:#55e8ff66;
+  box-shadow:0 0 35px #55e8ff12
+}
+
+.sign{font-size:30px}
+
+.card h3{
+  margin:14px 0 5px;
+  font-size:15px
+}
+
+.card p{
+  margin:0;
+  color:var(--muted);
+  font-size:12px;
+  line-height:1.5
+}
+
+.footer{
+  text-align:center;
+  color:#68708a;
+  padding:0 20px 35px;
+  font-size:12px
+}
+
+@media(max-width:760px){
+  .cards{
+    grid-template-columns:repeat(2,1fr)
+  }
+
+  .stage{
+    min-height:440px
+  }
+}
+
+@media(max-width:430px){
+  .cards{
+    grid-template-columns:1fr
+  }
+
+  .top{
+    padding:18px
+  }
+
+  .hero{
+    margin-top:3vh
+  }
+}
+</style>
+
+<!-- MediaPipe -->
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
+
+</head>
+
+<body>
+
+<main class="app">
+
+<div class="grid"></div>
+
+<header class="top">
+
+  <div class="brand">
+    GESTURE<span>/VOICE</span>
+  </div>
+
+  <div class="status">
+    <i class="dot"></i>
+    <span id="status">CAMERA READY</span>
+  </div>
+
+</header>
+
+
+<section class="hero">
+
+  <div class="eyebrow">
+    Real-time hand sign → speech
+  </div>
+
+  <h1>
+    Speak<br>
+    Without Words.
+  </h1>
+
+  <p>
+    Allow camera access, show a hand sign,
+    and the system will recognize it and
+    speak the matching phrase.
+  </p>
+
+
+  <div class="stage">
+
+    <video
+      class="camera"
+      id="camera"
+      autoplay
+      playsinline
+      muted>
+    </video>
+
+    <div class="scan"></div>
+
+    <div class="ring"></div>
+
+    <div class="phrase" id="phrase">
+      SHOW YOUR HAND
+    </div>
+
+    <div class="sub" id="sub">
+      camera ready · waiting for a gesture
+    </div>
+
+  </div>
+
+
+  <div class="controls">
+
+    <button class="btn" id="start">
+      📷 Start Camera
+    </button>
+
+    <button class="btn" id="voice">
+      🔊 Voice: ON
+    </button>
+
+    <button class="btn" id="repeat">
+      Repeat phrase
+    </button>
+
+  </div>
+
+</section>
+
+
+<section class="cards" id="cards"></section>
+
+
+<div class="footer">
+  Live browser hand tracking ·
+  Open Palm → HELP ·
+  Thumb Up → I NEED MEDS ·
+  One Finger → COME HERE ·
+  Fist → I NEED WATER
+</div>
+
+</main>
+
+
+<script>
+
+const gestures = [
+
+  ['✋','Open Palm','HELP'],
+
+  ['👍','Thumb Sign','I NEED MEDS'],
+
+  ['☝️','One Finger','COME HERE'],
+
+  ['✊','Closed Fist','I NEED WATER']
+
+];
+
+
+let voice = true;
+
+let lastIndex = -1;
+
+let lastSpoken = 0;
+
+
+const cards =
+  document.querySelector('#cards');
+
+const phrase =
+  document.querySelector('#phrase');
+
+const sub =
+  document.querySelector('#sub');
+
+const video =
+  document.querySelector('#camera');
+
+const status =
+  document.querySelector('#status');
+
+
+
+/* CREATE GESTURE CARDS */
+
+gestures.forEach((g,i)=>{
+
+  const card =
+    document.createElement('article');
+
+  card.className = 'card';
+
+  card.innerHTML = `
+    <div class="sign">${g[0]}</div>
+    <h3>${g[1]}</h3>
+    <p>Speaks: "${g[2]}"</p>
+  `;
+
+  card.onclick = () =>
+    activate(i,true);
+
+  cards.appendChild(card);
+
+});
+
+
+
+/* ACTIVATE GESTURE */
+
+function activate(i,speak){
+
+  document
+    .querySelectorAll('.card')
+    .forEach((c,j)=>{
+
+      c.classList.toggle(
+        'active',
+        i === j
+      );
+
+    });
+
+  phrase.textContent =
+    gestures[i][2];
+
+  sub.textContent =
+    gestures[i][1] +
+    ' · gesture detected';
+
+
+  if(
+    speak &&
+    voice &&
+    'speechSynthesis' in window
+  ){
+
+    speechSynthesis.cancel();
+
+    const speech =
+      new SpeechSynthesisUtterance(
+        gestures[i][2]
+      );
+
+    speech.rate = 0.9;
+
+    speech.pitch = 1;
+
+    speechSynthesis.speak(speech);
+
+  }
+
+}
+
+
+
+/* VOICE BUTTON */
+
+document
+  .querySelector('#voice')
+  .onclick = ()=>{
+
+    voice = !voice;
+
+    document
+      .querySelector('#voice')
+      .textContent =
+        '🔊 Voice: ' +
+        (voice ? 'ON' : 'OFF');
+
+  };
+
+
+
+/* REPEAT BUTTON */
+
+document
+  .querySelector('#repeat')
+  .onclick = ()=>{
+
+    if(
+      voice &&
+      lastIndex >= 0 &&
+      'speechSynthesis' in window
+    ){
+
+      speechSynthesis.cancel();
+
+      const speech =
+        new SpeechSynthesisUtterance(
+          gestures[lastIndex][2]
+        );
+
+      speech.rate = 0.9;
+
+      speechSynthesis.speak(speech);
+
+    }
+
+  };
+
+
+
+/* DISTANCE BETWEEN TWO LANDMARKS */
+
+function dist(a,b){
+
+  return Math.hypot(
+    a.x-b.x,
+    a.y-b.y
+  );
+
+}
+
+
+
+/* GESTURE CLASSIFICATION */
+
+function classify(l){
+
+  const wrist = l[0];
+
+  const thumb = l[4];
+
+  const index = l[8];
+
+  const middle = l[12];
+
+  const ring = l[16];
+
+  const pinky = l[20];
+
+
+  const palm =
+    dist(wrist,l[9]) || 0.01;
+
+
+  /*
+    Check whether fingers
+    are extended.
+  */
+
+  const extended = [
+
+    dist(wrist,index) >
+      palm * 1.65,
+
+    dist(wrist,middle) >
+      palm * 1.55,
+
+    dist(wrist,ring) >
+      palm * 1.45,
+
+    dist(wrist,pinky) >
+      palm * 1.35
+
+  ];
+
+
+  /*
+    Thumb up detection.
+  */
+
+  const thumbUp =
+    dist(thumb,wrist) >
+      palm * 1.45 &&
+    thumb.y < l[5].y;
+
+
+  /*
+    Open palm.
+  */
+
+  const open =
+    extended.every(Boolean) &&
+    dist(thumb,index) >
+      palm * 0.55;
+
+
+  /*
+    Closed fist.
+  */
+
+  const fist =
+    extended.filter(Boolean).length === 0;
+
+
+  /*
+    Only index finger extended.
+  */
+
+  const oneFinger =
+    extended[0] &&
+    !extended[1] &&
+    !extended[2] &&
+    !extended[3];
+
+
+  /*
+    Return gesture number.
+  */
+
+  if(
+    thumbUp &&
+    !open &&
+    !oneFinger
+  ){
+
+    return 1;
+
+  }
+
+
+  if(open){
+
+    return 0;
+
+  }
+
+
+  if(oneFinger){
+
+    return 2;
+
+  }
+
+
+  if(fist){
+
+    return 3;
+
+  }
+
+
+  return -1;
+
+}
+
+
+
+/* MEDIAPIPE RESULT */
+
+function onResults(results){
+
+  /*
+    No hand found.
+  */
+
+  if(
+    !results.multiHandLandmarks ||
+    !results.multiHandLandmarks.length
+  ){
+
+    status.textContent =
+      'HAND NOT FOUND';
+
+    sub.textContent =
+      'show one hand inside the frame';
+
+    return;
+
+  }
+
+
+  /*
+    Get first detected hand.
+  */
+
+  const landmarks =
+    results.multiHandLandmarks[0];
+
+
+  const index =
+    classify(landmarks);
+
+
+  /*
+    Unknown hand shape.
+  */
+
+  if(index < 0){
+
+    status.textContent =
+      'HAND TRACKING';
+
+    sub.textContent =
+      'gesture not recognized';
+
+    return;
+
+  }
+
+
+  status.textContent =
+    'VISION ONLINE';
+
+
+  const now =
+    Date.now();
+
+
+  /*
+    Speak only when:
+    - gesture changes
+    OR
+    - 2.5 seconds passed.
+  */
+
+  if(
+    index !== lastIndex ||
+    now - lastSpoken > 2500
+  ){
+
+    lastIndex = index;
+
+    lastSpoken = now;
+
+    activate(index,true);
+
+  }
+  else{
+
+    document
+      .querySelectorAll('.card')
+      .forEach((c,j)=>{
+
+        c.classList.toggle(
+          'active',
+          index === j
+        );
+
+      });
+
+  }
+
+}
+
+
+
+/* START CAMERA */
+
+let cameraController = null;
+
+
+document
+  .querySelector('#start')
+  .onclick = async ()=>{
+
+    try{
+
+      /*
+        Ask browser for camera.
+      */
+
+      const stream =
+        await navigator.mediaDevices
+          .getUserMedia({
+
+            video:{
+              facingMode:'user',
+              width:{
+                ideal:1280
+              },
+              height:{
+                ideal:720
+              }
+            },
+
+            audio:false
+
+          });
+
+
+      video.srcObject =
+        stream;
+
+
+      /*
+        Create MediaPipe Hands.
+      */
+
+      const hands =
+        new Hands({
+
+          locateFile:
+            file =>
+              `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`
+
+        });
+
+
+      /*
+        MediaPipe settings.
+      */
+
+      hands.setOptions({
+
+        maxNumHands:1,
+
+        modelComplexity:1,
+
+        minDetectionConfidence:0.65,
+
+        minTrackingConfidence:0.60
+
+      });
+
+
+      /*
+        Receive recognition results.
+      */
+
+      hands.onResults(
+        onResults
+      );
+
+
+      /*
+        Connect camera to MediaPipe.
+      */
+
+      cameraController =
+        new Camera(
+
+          video,
+
+          {
+
+            onFrame:
+              async ()=>{
+
+                await hands.send({
+                  image:video
+                });
+
+              },
+
+            width:1280,
+
+            height:720
+
+          }
+
+        );
+
+
+      cameraController.start();
+
+
+      status.textContent =
+        'STARTING CAMERA';
+
+
+      document
+        .querySelector('#start')
+        .textContent =
+          '📷 Camera Running';
+
+    }
+
+    catch(error){
+
+      console.error(error);
+
+      status.textContent =
+        'CAMERA BLOCKED';
+
+      sub.textContent =
+        'allow camera permission and use HTTPS or localhost';
+
+    }
+
+  };
+
+
+
+/* INITIAL STATE */
+
+phrase.textContent =
+  'SHOW YOUR HAND';
+
+sub.textContent =
+  'camera ready · waiting for a gesture';
+
+</script>
+
+</body>
+</html>
